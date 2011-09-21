@@ -22,9 +22,9 @@ abstract class Controller_Migrations extends Controller
         }
 
         // get the parameters
-        $to_version = $this->request->param('to_version', 'auto');
+        $to_version = $this->request->param('to_version', NULL);
 
-        $connection = $this->request->param('connection', null);
+        $connection = $this->request->param('connection', NULL);
 
         $rebuild = FALSE;
         if($this->request->param('rebuild') == 'rebuild')
@@ -33,35 +33,25 @@ abstract class Controller_Migrations extends Controller
         }
 
         $migration = new Migration($connection);
-        $migration->set_observer($this->get_migrationObserver());
-        $migration->set_schemaVersionProvider($this->get_schemaVersionProvider());
-        if($to_version == 'auto')
+        $migration->set_schema_version($this->get_schema_version());
+        if($to_version === NULL)
         {
-            $migration->set_appVersionProvider($this->get_appVersionProvider());
-            $migration->auto_migrate($rebuild);
+            $to_version = $this->get_app_version();
         }
-        else
-        {
-            $migration->migrate_to($to_version, $rebuild);
-        }
+
+        $migration->migrate_to($to_version, $rebuild);
     }
 
     /**
      * @abstract
      * @return SchemaVersionProvider
      */
-    abstract protected function get_schemaVersionProvider();
+    abstract protected function get_schema_version();
 
     /**
      * @abstract
      * @return AppVersionProvider
      */
-    abstract protected function get_appVersionProvider();
-
-    /**
-     * @abstract
-     * @return MigrationObserver OR null
-     */
-    abstract protected function get_migrationObserver();
+    abstract protected function get_app_version();
 
 }

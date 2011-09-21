@@ -13,39 +13,43 @@
 class Migration
 {
 
-    public function __construct($connection = 'default')
+    const DEFAULT_CONNECTION = 'default';
+    const MIGRATIONS_PATH = 'data/migrations';
+
+    public function __construct($connection = NULL)
     {
+        if($cinnection == NULL)
+        {
+            $connection = self::DEFAULT_CONNECTION;
+        }
         $this->setConnection($connection);
     }
 
     public function migrate_to($version, $rebuild)
     {
-
-    }
-
-    public function update($patchesDir) {
         $updates = array();
-        $fileExtension = '.sql';
-        $appVersion = $this->getAppVersion();
-        $schemaVersion = $this->getSchemaVersion();
-        $updateStatus = $this->getUpdateStatus();
+        $file_extension = '.sql';
+        $schema_ersion = $this->get_schema_version();
 
-        if($appVersion == null) {
-            throw new Exception('App version not set');
+        if($version === NULL)
+        {
+            throw new Exception('Version not set');
         }
 
-        if($schemaVersion == null) {
+        if($schema_version === NULL)
+        {
             throw new Exception('Schema version not set');
         }
 
         // if we don't need to update return false
-        if(!$this->doesRequireUpdate()) {
-            return false;
+        if(!$this->doesRequireUpdate())
+        {
+            return FALSE;
         }
 
         // scan the patches directory and add any patch files newer than the the current schema version to an array
         $patchesDirHandle = opendir($patchesDir);
-        while (($filename = readdir($patchesDirHandle)) !== false) {
+        while (($filename = readdir($patchesDirHandle)) !== FALSE) {
             $fileNameParts = explode($fileExtension, $filename);
             $patchVersion = $fileNameParts[0];
             if($patchVersion > $schemaVersion && $patchVersion <= $appVersion) {
@@ -75,7 +79,7 @@ class Migration
         $this->updateSchemaVersion($appVersion);
 
         return true;
-    }
+     }
 }
 
 ?>
