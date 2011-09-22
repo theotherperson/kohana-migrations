@@ -9,8 +9,8 @@ class Migration
 
     const DEFAULT_CONNECTION = 'default';
     const MIGRATIONS_PATH = 'data/migrations';
-	const DIRECTION_UP = 10;
-	const DIRECTION_DOWN = 20;
+	const DIRECTION_UP = 'up';
+	const DIRECTION_DOWN = 'down';
 
     public function __construct($connection = NULL)
     {
@@ -25,7 +25,6 @@ class Migration
     {
         $migrations = array();
 		$direction = NULL;
-        $file_extension = '.sql';
         $schema_version = $this->get_schema_version();
 
         if($version === NULL)
@@ -63,8 +62,13 @@ class Migration
 		 */
         $migrations_path_handle = opendir(self::MIGRATIONS_PATH);
         while (($filename = readdir($migrations_path_handle)) !== FALSE) {
-            $filename_parts = explode($file_extension, $filename);
-            $migration_version = $filename_parts[0];
+			$regex_pattern = '/([0-9\.]+)\-'.$direction.'\.sql/';
+			$matches = array();
+			if(preg_match($regex_pattern, $filename, $matches)
+			{
+				$migration_version = $matches[1];
+			}
+			
 			if($direction == self::DIRECTION_UP)
 			{
 				if($migration_version > $schema_version && $migration_version <= $app_version)
