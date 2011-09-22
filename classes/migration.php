@@ -64,7 +64,7 @@ class Migration
         while (($filename = readdir($migrations_path_handle)) !== FALSE) {
 			$regex_pattern = '/([0-9\.]+)\-'.$direction.'\.sql/';
 			$matches = array();
-			if(preg_match($regex_pattern, $filename, $matches)
+			if(preg_match($regex_pattern, $filename, $matches))
 			{
 				$migration_version = $matches[1];
 			}
