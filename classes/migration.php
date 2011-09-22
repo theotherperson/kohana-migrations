@@ -1,10 +1,4 @@
 <?php
-
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /**
  * Description of migration
  *
@@ -15,21 +9,24 @@ class Migration
 
     const DEFAULT_CONNECTION = 'default';
     const MIGRATIONS_PATH = 'data/migrations';
+	const DIRECTION_UP = 10;
+	const DIRECTION_DOWN = 20;
 
     public function __construct($connection = NULL)
     {
-        if($cinnection == NULL)
+        if($connection == NULL)
         {
             $connection = self::DEFAULT_CONNECTION;
         }
-        $this->setConnection($connection);
+        $this->set_connection($connection);
     }
 
     public function migrate_to($version, $rebuild)
     {
-        $updates = array();
+        $migrations = array();
+		$direction = NULL;
         $file_extension = '.sql';
-        $schema_ersion = $this->get_schema_version();
+        $schema_version = $this->get_schema_version();
 
         if($version === NULL)
         {
@@ -41,44 +38,82 @@ class Migration
             throw new Exception('Schema version not set');
         }
 
-        // if we don't need to update return false
-        if(!$this->doesRequireUpdate())
-        {
-            return FALSE;
+		/**
+		 * Work out the direction in which we are migrating
+		 * UP = applying schema updates
+		 * DOWN = rolling back schema changes
+		 */
+		if($version > $schema_version)
+		{
+			$direction = self::DIRECTION_UP;
+		}
+		elseif($version < $schema_version)
+		{
+			$direction = self::DIRECTION_DOWN;
+		}
+		else
+		{
+			// versions must be equal, no migrations required
+			return FALSE;
+		}
+
+        /**
+		 * scan the migrations directory and add any migration files newer
+		 * than the the current schema version to an array
+		 */
+        $migrations_path_handle = opendir(self::MIGRATIONS_PATH);
+        while (($filename = readdir($migrations_path_handle)) !== FALSE) {
+            $filename_parts = explode($file_extension, $filename);
+            $migration_version = $filename_parts[0];
+			if($direction == self::DIRECTION_UP)
+			{
+				if($migration_version > $schema_version && $migration_version <= $app_version)
+				{
+					$migrations[] = $migration_version;
+				}
+			}
+			else
+			{
+				if($migration_version < $schema_version && $migration_version >= $app_version)
+				{
+					$migrations[] = $migration_version;
+				}
+			}
         }
 
-        // scan the patches directory and add any patch files newer than the the current schema version to an array
-        $patchesDirHandle = opendir($patchesDir);
-        while (($filename = readdir($patchesDirHandle)) !== FALSE) {
-            $fileNameParts = explode($fileExtension, $filename);
-            $patchVersion = $fileNameParts[0];
-            if($patchVersion > $schemaVersion && $patchVersion <= $appVersion) {
-                $updates[] = $patchVersion;
-            }
-        }
+		if(count($migrations) < 1)
+		{
+			// no migrations to apply
+			return FALSE;
+		}
 
-        // run each update in the correct order
-        asort($updates);
-        foreach($updates as $update) {
-            $patchFilePath = $patchesDir . DS . $update . $fileExtension;
-            $sql = file_get_contents($patchFilePath);
+        // run each migration in the correct order
+		if($direction == self::DIRECTION_UP)
+		{
+			asort($migrations);
+		}
+		else
+		{
+			arsort($migrations);
+		}
 
-            // split the sql into staements by using ';'
-            $sqlStatements = explode(';', $sql);
+        foreach($migrations as $migration) {
+            $patch_file_path = $patches_dir . DS . $migration . $file_extension;
+            $sql = file_get_contents($patch_file_path);
+
+            // split the sql into statements by using ';'
+            $sql_statements = explode(';', $sql);
 
             // remove the last element as it will always be empty
-            array_pop($sqlStatements);
+            array_pop($sql_statements);
 
             // run each statement one by one
-            foreach($sqlStatements as $sqlStatement) {
-                $this->query(trim($sqlStatement));
+            foreach($sql_statements as $sql_statement) {
+				DB::query(NULL, $sql_statement);
             }
         }
 
-        // updates executed successfully, now update the schema version
-        $this->updateSchemaVersion($appVersion);
-
-        return true;
+        return TRUE;
      }
 }
 
