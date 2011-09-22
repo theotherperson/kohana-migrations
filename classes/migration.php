@@ -1,4 +1,5 @@
-<?php
+<?php defined('SYSPATH') OR die('No Direct Script Access');
+
 /**
  * Description of migration
  *
@@ -6,47 +7,46 @@
  */
 class Migration
 {
-
-    const DEFAULT_CONNECTION = 'default';
-    const MIGRATIONS_PATH = 'data/migrations';
+	const DEFAULT_CONNECTION = 'default';
+	const MIGRATIONS_PATH = 'data/migrations';
 	const DIRECTION_UP = 'up';
 	const DIRECTION_DOWN = 'down';
 
-    public function __construct($connection = NULL)
-    {
-        if($connection == NULL)
-        {
-            $connection = self::DEFAULT_CONNECTION;
-        }
-        $this->set_connection($connection);
-    }
+	public function __construct($connection = NULL)
+	{
+		if ($connection == NULL)
+		{
+			$connection = self::DEFAULT_CONNECTION;
+		}
+		$this->set_connection($connection);
+	}
 
-    public function migrate_to($version, $rebuild)
-    {
-        $migrations = array();
+	public function migrate_to($version, $rebuild)
+	{
+		$migrations = array();
 		$direction = NULL;
-        $schema_version = $this->get_schema_version();
+		$schema_version = $this->get_schema_version();
 
-        if($version === NULL)
-        {
-            throw new Exception('Version not set');
-        }
+		if ($version === NULL)
+		{
+			throw new Exception('Version not set');
+		}
 
-        if($schema_version === NULL)
-        {
-            throw new Exception('Schema version not set');
-        }
+		if ($schema_version === NULL)
+		{
+			throw new Exception('Schema version not set');
+		}
 
 		/**
 		 * Work out the direction in which we are migrating
 		 * UP = applying schema updates
 		 * DOWN = rolling back schema changes
 		 */
-		if($version > $schema_version)
+		if ($version > $schema_version)
 		{
 			$direction = self::DIRECTION_UP;
 		}
-		elseif($version < $schema_version)
+		elseif ($version < $schema_version)
 		{
 			$direction = self::DIRECTION_DOWN;
 		}
@@ -56,43 +56,44 @@ class Migration
 			return FALSE;
 		}
 
-        /**
+		/**
 		 * scan the migrations directory and add any migration files newer
 		 * than the the current schema version to an array
 		 */
-        $migrations_path_handle = opendir(self::MIGRATIONS_PATH);
-        while (($filename = readdir($migrations_path_handle)) !== FALSE) {
-			$regex_pattern = '/([0-9\.]+)\-'.$direction.'\.sql/';
+		$migrations_path_handle = opendir(self::MIGRATIONS_PATH);
+		while (($filename = readdir($migrations_path_handle)) !== FALSE)
+		{
+			$regex_pattern = '/([0-9\.]+)\-' . $direction . '\.sql/';
 			$matches = array();
-			if(preg_match($regex_pattern, $filename, $matches))
+			if (preg_match($regex_pattern, $filename, $matches))
 			{
 				$migration_version = $matches[1];
 			}
-			
-			if($direction == self::DIRECTION_UP)
+
+			if ($direction == self::DIRECTION_UP)
 			{
-				if($migration_version > $schema_version && $migration_version <= $app_version)
+				if ($migration_version > $schema_version && $migration_version <= $app_version)
 				{
 					$migrations[] = $migration_version;
 				}
 			}
 			else
 			{
-				if($migration_version < $schema_version && $migration_version >= $app_version)
+				if ($migration_version < $schema_version && $migration_version >= $app_version)
 				{
 					$migrations[] = $migration_version;
 				}
 			}
-        }
+		}
 
-		if(count($migrations) < 1)
+		if (count($migrations) < 1)
 		{
 			// no migrations to apply
 			return FALSE;
 		}
 
-        // run each migration in the correct order
-		if($direction == self::DIRECTION_UP)
+		// run each migration in the correct order
+		if ($direction == self::DIRECTION_UP)
 		{
 			asort($migrations);
 		}
@@ -101,24 +102,24 @@ class Migration
 			arsort($migrations);
 		}
 
-        foreach($migrations as $migration) {
-            $patch_file_path = $patches_dir . DS . $migration . $file_extension;
-            $sql = file_get_contents($patch_file_path);
+		foreach ($migrations as $migration)
+		{
+			$patch_file_path = $patches_dir . DS . $migration . $file_extension;
+			$sql = file_get_contents($patch_file_path);
 
-            // split the sql into statements by using ';'
-            $sql_statements = explode(';', $sql);
+			// split the sql into statements by using ';'
+			$sql_statements = explode(';', $sql);
 
-            // remove the last element as it will always be empty
-            array_pop($sql_statements);
+			// remove the last element as it will always be empty
+			array_pop($sql_statements);
 
-            // run each statement one by one
-            foreach($sql_statements as $sql_statement) {
+			// run each statement one by one
+			foreach ($sql_statements as $sql_statement)
+			{
 				DB::query(NULL, $sql_statement);
-            }
-        }
+			}
+		}
 
-        return TRUE;
-     }
+		return TRUE;
+	}
 }
-
-?>
