@@ -116,7 +116,14 @@ class Migration
 			// run each statement one by one
 			foreach ($sql_statements as $sql_statement)
 			{
-				DB::query(NULL, $sql_statement);
+				try
+				{
+					DB::query(NULL, $sql_statement);
+				}
+				catch (Exception $e)
+				{
+					return FALSE;
+				}
 			}
 		}
 

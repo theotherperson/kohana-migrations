@@ -43,13 +43,13 @@ abstract class Controller_Migrations extends Controller
 
 	/**
 	 * @abstract
-	 * @return SchemaVersionProvider
+	 * @return string Schema version number
 	 */
 	abstract protected function get_schema_version();
 
 	/**
 	 * @abstract
-	 * @return AppVersionProvider
+	 * @return string App version number
 	 */
 	abstract protected function get_app_version();
 }
