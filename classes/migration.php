@@ -63,14 +63,21 @@ class Migration
 		 * scan the migrations directory and add any migration files newer
 		 * than the the current schema version to an array
 		 */
-		$migrations_path_handle = opendir(self::MIGRATIONS_PATH);
+		$migrations_path_handle = opendir(APPPATH.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.self::MIGRATIONS_PATH);
 		while (($filename = readdir($migrations_path_handle)) !== FALSE)
 		{
-			$regex_pattern = '/([0-9\.]+)\-' . $direction . '\.sql/';
+			$regex_pattern = '/([0-9\.]+)\-'.$direction.'\.sql/';
 			$matches = array();
+			$migration_version = NULL;
 			if (preg_match($regex_pattern, $filename, $matches))
 			{
 				$migration_version = $matches[1];
+			}
+
+			if($migration_version === NULL)
+			{
+				// the filename does not match the expected pattern so move on to the next file
+				continue;
 			}
 
 			if ($direction == self::DIRECTION_UP)
