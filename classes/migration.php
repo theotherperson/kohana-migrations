@@ -64,7 +64,7 @@ class Migration
 		 * scan the migrations directory and add any migration files newer
 		 * than the the current schema version to an array
 		 */
-		$migrations_path = APPPATH.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.self::MIGRATIONS_PATH;
+		$migrations_path = APPPATH.'..'.DIRECTORY_SEPARATOR.self::MIGRATIONS_PATH;
 		$migrations_path_handle = opendir($migrations_path);
 		while (($filename = readdir($migrations_path_handle)) !== FALSE)
 		{
@@ -116,7 +116,7 @@ class Migration
 
 		foreach ($migrations as $migration)
 		{
-			$migration_file_path = $migrations_path.DIRECTORY_SEPARATOR.$migration.$file_extension;
+			$migration_file_path = $migrations_path.DIRECTORY_SEPARATOR.$migration.'-'.$direction.$file_extension;
 			$sql = file_get_contents($migration_file_path);
 
 			// split the sql into statements by using ';'
