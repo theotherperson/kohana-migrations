@@ -82,14 +82,14 @@ class Migration
 
 			if ($direction == self::DIRECTION_UP)
 			{
-				if ($migration_version > $schema_version && $migration_version <= $app_version)
+				if ($migration_version > $schema_version && $migration_version <= $version)
 				{
 					$migrations[] = $migration_version;
 				}
 			}
 			else
 			{
-				if ($migration_version < $schema_version && $migration_version >= $app_version)
+				if ($migration_version < $schema_version && $migration_version >= $version)
 				{
 					$migrations[] = $migration_version;
 				}
