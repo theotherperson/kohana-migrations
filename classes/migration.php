@@ -91,7 +91,7 @@ class Migration
 			}
 			else
 			{
-				if ($migration_version < $schema_version && $migration_version >= $version)
+				if ($migration_version <= $schema_version && $migration_version > $version)
 				{
 					$migrations[] = $migration_version;
 				}
