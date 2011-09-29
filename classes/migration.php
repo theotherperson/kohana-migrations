@@ -12,6 +12,8 @@ class Migration
 	const DIRECTION_UP = 'up';
 	const DIRECTION_DOWN = 'down';
 
+	private $connection = NULL;
+
 	public function __construct($connection = NULL)
 	{
 		if ($connection == NULL)
@@ -118,7 +120,7 @@ class Migration
 			{
 				try
 				{
-					DB::query(NULL, $sql_statement);
+					DB::query(NULL, $sql_statement)->execute($this->get_connection());
 				}
 				catch (Exception $e)
 				{
@@ -129,4 +131,25 @@ class Migration
 
 		return TRUE;
 	}
+
+	/**
+	 * Getter for connection property
+	 *
+	 * @return	mixed	Database instance or name of instance
+	 */
+	public function get_connection()
+	{
+		return $this->connection;
+	}
+
+	/**
+	 * Setter for connection property
+	 *
+	 * @param	mixed	$connection		Database instance or name of instance
+	 */
+	public function set_connection($connection)
+	{
+		$this->connection = $connection;
+	}
+
 }
