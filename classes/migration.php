@@ -13,6 +13,7 @@ class Migration
 	const DIRECTION_DOWN = 'down';
 
 	private $connection = NULL;
+	private $schema_version = NULL;
 
 	public function __construct($connection = NULL)
 	{
@@ -150,6 +151,22 @@ class Migration
 	public function set_connection($connection)
 	{
 		$this->connection = $connection;
+	}
+
+	/**
+	 *
+	 * @return string
+	 */
+	public function get_schema_version() {
+		return $this->schema_version;
+	}
+
+	/**
+	 *
+	 * @param string $schema_version
+	 */
+	public function set_schema_version($schema_version) {
+		$this->schema_version = $schema_version;
 	}
 
 }
