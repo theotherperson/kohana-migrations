@@ -29,6 +29,7 @@ class Migration
 		$migrations = array();
 		$direction = NULL;
 		$schema_version = $this->get_schema_version();
+		$file_extension = '.sql';
 
 		if ($version === NULL)
 		{
@@ -63,10 +64,11 @@ class Migration
 		 * scan the migrations directory and add any migration files newer
 		 * than the the current schema version to an array
 		 */
-		$migrations_path_handle = opendir(APPPATH.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.self::MIGRATIONS_PATH);
+		$migrations_path = APPPATH.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.self::MIGRATIONS_PATH;
+		$migrations_path_handle = opendir($migrations_path);
 		while (($filename = readdir($migrations_path_handle)) !== FALSE)
 		{
-			$regex_pattern = '/([0-9\.]+)\-'.$direction.'\.sql/';
+			$regex_pattern = '/([0-9\.]+)\-'.$direction.'\\'.$file_extension.'/';
 			$matches = array();
 			$migration_version = NULL;
 			if (preg_match($regex_pattern, $filename, $matches))
@@ -114,8 +116,8 @@ class Migration
 
 		foreach ($migrations as $migration)
 		{
-			$patch_file_path = $patches_dir . DS . $migration . $file_extension;
-			$sql = file_get_contents($patch_file_path);
+			$migration_file_path = $migrations_path.DIRECTORY_SEPARATOR.$migration.$file_extension;
+			$sql = file_get_contents($migration_file_path);
 
 			// split the sql into statements by using ';'
 			$sql_statements = explode(';', $sql);
