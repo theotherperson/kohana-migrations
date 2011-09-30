@@ -12,8 +12,12 @@ class Migration
 	const DIRECTION_UP = 'up';
 	const DIRECTION_DOWN = 'down';
 
+	const STATUS_SUCCESS = 'success';
+	const STSTUS_FAILED = 'failed';
+
 	private $connection = NULL;
 	private $schema_version = NULL;
+	private $status = NULL;
 
 	public function __construct($connection = NULL)
 	{
@@ -24,6 +28,12 @@ class Migration
 		$this->set_connection($connection);
 	}
 
+	/**
+	 *
+	 * @param type $version
+	 * @param type $rebuild
+	 * @return	bool	true if a migration task was attempted regardless of outcome, otherwise false
+	 */
 	public function migrate_to($version, $rebuild)
 	{
 		$migrations = array();
@@ -134,11 +144,13 @@ class Migration
 				}
 				catch (Exception $e)
 				{
-					return FALSE;
+					$this->set_status(self::STATUS_FAILED);
+					return TRUE;
 				}
 			}
 		}
 
+		$this->set_status(self::STATUS_SUCCESS);
 		return TRUE;
 	}
 
@@ -176,6 +188,22 @@ class Migration
 	 */
 	public function set_schema_version($schema_version) {
 		$this->schema_version = $schema_version;
+	}
+
+	/**
+	 *
+	 * @return string
+	 */
+	public function get_status() {
+		return $this->status;
+	}
+
+	/**
+	 *
+	 * @param string $status
+	 */
+	public function set_status($status) {
+		$this->status = $status;
 	}
 
 }

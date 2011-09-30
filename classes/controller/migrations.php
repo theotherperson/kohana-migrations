@@ -38,7 +38,10 @@ abstract class Controller_Migrations extends Controller
 			$to_version = $this->get_app_version();
 		}
 
-		$migration->migrate_to($to_version, $rebuild);
+		if($migration->migrate_to($to_version, $rebuild))
+		{
+			$this->after_migrate($migration);
+		}
 	}
 
 	/**
@@ -52,4 +55,18 @@ abstract class Controller_Migrations extends Controller
 	 * @return string App version number
 	 */
 	abstract protected function get_app_version();
+
+	/**
+	 * after migrate is called after each migration, this method definition
+	 * contains no logic and should be overriden in each
+	 * application's implementation of migrations.
+	 *
+	 * @param	Migration	The migration that has just run
+	 * @return	string		App version number
+	 */
+	protected function after_migrate(Migration $migration)
+	{
+
+	}
+
 }
