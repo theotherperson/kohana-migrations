@@ -13,7 +13,7 @@ class Migration
 	const DIRECTION_DOWN = 'down';
 
 	const STATUS_SUCCESS = 'success';
-	const STSTUS_FAILED = 'failed';
+	const STATUS_FAILED = 'failed';
 
 	private $connection = NULL;
 	private $schema_version = NULL;
