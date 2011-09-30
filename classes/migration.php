@@ -17,6 +17,7 @@ class Migration
 
 	private $connection = NULL;
 	private $schema_version = NULL;
+	private $to_version = NULL;
 	private $status = NULL;
 
 	public function __construct($connection = NULL)
@@ -45,6 +46,7 @@ class Migration
 		{
 			throw new Exception('Version not set');
 		}
+		$this->set_to_version($version);
 
 		if ($schema_version === NULL)
 		{
@@ -188,6 +190,22 @@ class Migration
 	 */
 	public function set_schema_version($schema_version) {
 		$this->schema_version = $schema_version;
+	}
+
+	/**
+	 *
+	 * @return string
+	 */
+	public function get_to_version() {
+		return $this->to_version;
+	}
+
+	/**
+	 *
+	 * @param string $to_version
+	 */
+	public function set_to_version($to_version) {
+		$this->to_version = $to_version;
 	}
 
 	/**
