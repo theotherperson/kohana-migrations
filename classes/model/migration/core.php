@@ -5,12 +5,13 @@
  *
  * @author jon
  */
-class Migration
+class Model_Migration_Core
 {
 	const DEFAULT_CONNECTION = 'default';
 	const MIGRATIONS_PATH = 'data/migrations';
 	const DIRECTION_UP = 'up';
 	const DIRECTION_DOWN = 'down';
+	const MODULE_NAME = 'migrations';
 
 	const STATUS_SUCCESS = 'success';
 	const STATUS_FAILED = 'failed';
@@ -73,39 +74,45 @@ class Migration
 		}
 
 		/**
-		 * scan the migrations directory and add any migration files newer
-		 * than the the current schema version to an array
+		 * first, scan the module's migrations directory and then the app's migrations directory and
+		 * add any migration files newer/older than the the current schema version to an array
 		 */
-		$migrations_path = APPPATH.'..'.DIRECTORY_SEPARATOR.self::MIGRATIONS_PATH;
-		$migrations_path_handle = opendir($migrations_path);
-		while (($filename = readdir($migrations_path_handle)) !== FALSE)
+		$module_migrations_path = MODPATH.DIRECTORY_SEPARATOR.self::MODULE_NAME.DIRECTORY_SEPARATOR.self::MIGRATIONS_PATH;
+		$app_migrations_path = APPPATH.'..'.DIRECTORY_SEPARATOR.self::MIGRATIONS_PATH;
+		$migrations_paths = array($module_migrations_path, $app_migrations_path);
+		
+		foreach($migrations_paths as $migrations_path)
 		{
-			$regex_pattern = '/([0-9\.]+)\-'.$direction.'\\'.$file_extension.'/';
-			$matches = array();
-			$migration_version = NULL;
-			if (preg_match($regex_pattern, $filename, $matches))
+			$migrations_path_handle = opendir($migrations_path);
+			while (($filename = readdir($migrations_path_handle)) !== FALSE)
 			{
-				$migration_version = $matches[1];
-			}
-
-			if($migration_version === NULL)
-			{
-				// the filename does not match the expected pattern so move on to the next file
-				continue;
-			}
-
-			if ($direction == self::DIRECTION_UP)
-			{
-				if ($migration_version > $schema_version && $migration_version <= $version)
+				$regex_pattern = '/([0-9\.]+)\-'.$direction.'\\'.$file_extension.'/';
+				$matches = array();
+				$migration_version = NULL;
+				if (preg_match($regex_pattern, $filename, $matches))
 				{
-					$migrations[] = $migration_version;
+					$migration_version = $matches[1];
 				}
-			}
-			else
-			{
-				if ($migration_version <= $schema_version && $migration_version > $version)
+	
+				if($migration_version === NULL)
 				{
-					$migrations[] = $migration_version;
+					// the filename does not match the expected pattern so move on to the next file
+					continue;
+				}
+	
+				if ($direction == self::DIRECTION_UP)
+				{
+					if ($migration_version > $schema_version && $migration_version <= $version)
+					{
+						$migrations[$migration_version] = $migrations_path.DIRECTORY_SEPARATOR.$filename;
+					}
+				}
+				else
+				{
+					if ($migration_version <= $schema_version && $migration_version > $version)
+					{
+						$migrations[$migration_version] = $migrations_path.DIRECTORY_SEPARATOR.$filename;
+					}
 				}
 			}
 		}
@@ -126,10 +133,9 @@ class Migration
 			arsort($migrations);
 		}
 
-		foreach ($migrations as $migration)
+		foreach ($migrations as $version => $migration)
 		{
-			$migration_file_path = $migrations_path.DIRECTORY_SEPARATOR.$migration.'-'.$direction.$file_extension;
-			$sql = file_get_contents($migration_file_path);
+			$sql = file_get_contents($migration);
 
 			// split the sql into statements by using ';'
 			$sql_statements = explode(';', $sql);

@@ -1,72 +1,65 @@
-<?php defined('SYSPATH') OR die('No Direct Script Access');
-
+<?php defined('SYSPATH') or die('No direct script access.');
 /**
+ * Controller_Wbmigrations -
  *
- *
- *
+ * @author Jon Cotton <jon@rpacode.co.uk>
+ * @package water-babies
+ * @since v1.0
+ * @copyright (c) 2011 RPA Code
  */
-abstract class Controller_Migrations extends Controller
+class Controller_Migrations extends Controller_Migrations_Core
 {
-
 	/**
-	 *
-	 *
-	 *
-	 */
-	public function action_migrate() {
-		// only accessible via the command line
-		if (!Kohana::$is_cli)
-		{
-			throw new HTTP_Exception_403('Access via CLI only');
-		}
-
-		// get the parameters
-		$to_version = $this->request->param('to_version', NULL);
-
-		$connection = $this->request->param('connection', NULL);
-
-		$rebuild = FALSE;
-		if ($this->request->param('rebuild') == 'rebuild')
-		{
-			$rebuild = TRUE;
-		}
-
-		$migration = new Migration($connection);
-		$migration->set_schema_version($this->get_schema_version());
-		if ($to_version === NULL)
-		{
-			$to_version = $this->get_app_version();
-		}
-
-		if($migration->migrate_to($to_version, $rebuild))
-		{
-			$this->after_migrate($migration);
-		}
-	}
-
-	/**
-	 * @abstract
 	 * @return string Schema version number
 	 */
-	abstract protected function get_schema_version();
-
-	/**
-	 * @abstract
-	 * @return string App version number
-	 */
-	abstract protected function get_app_version();
-
-	/**
-	 * after migrate is called after each migration, this method definition
-	 * contains no logic and should be overriden in each
-	 * application's implementation of migrations.
-	 *
-	 * @param	Migration	The migration that has just run
-	 * @return	string		App version number
-	 */
-	protected function after_migrate(Migration $migration)
+	protected function get_schema_version()
 	{
+		$schema_version = NULL;
 
+		try
+		{
+			$migration_log = ORM::factory('migration_log');
+			$schema_version = $migration_log->get_current_schema_version();
+		}
+		catch(Exception $e)
+		{
+			// table doesn't exist, schema version is 0
+			$schema_version = '0';
+		}
+
+		/**
+		 * if we haven't got a version number it's most likely becuase the
+		 * migration_log table is empty, schema is at version 0
+		 */
+		if($schema_version === NULL)
+		{
+			$schema_version = '0';
+		}
+
+		return $schema_version;
 	}
 
+	/**
+	 * @return string App version number
+	 */
+	protected function get_app_version()
+	{
+		return Kohana::$config->load('application.version');
+	}
+
+	/**
+	 * implementation of after_migrate method that updates the migration log
+	 *
+	 * @param Model_Migration $migration the migration object that represents the data
+	 * migration task that has just run
+	 */
+	protected function after_migrate(Model_Migration $migration)
+	{
+		$migration_log = ORM::factory('migration_log');
+		$migration_log->add_entry(
+			$migration->get_schema_version(),
+			$migration->get_to_version(),
+			$migration->get_status()
+		);
+	}
 }
