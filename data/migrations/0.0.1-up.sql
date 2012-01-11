@@ -5,4 +5,4 @@ CREATE TABLE `migration_log` (
   `time` DATETIME NOT NULL,
   `status` VARCHAR(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE = InnoDB;
+);
