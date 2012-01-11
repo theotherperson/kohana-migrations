@@ -34,7 +34,7 @@ class Model_Migration_Log_Core extends ORM
 		$this->from_version = $from_version;
 		$this->to_version = $to_version;
 		$this->status = $status;
-		$this->time = date('Y-m-d h:i:s');
+		$this->time = date('Y-m-d H:i:s');
 
 		$this->save();
 	}
