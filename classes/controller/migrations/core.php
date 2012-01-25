@@ -19,6 +19,10 @@ abstract class Controller_Migrations_Core extends Controller
 		{
 			throw new HTTP_Exception_403('Access via CLI only');
 		}
+        
+        // try and ensure the cache and log dirs are writeable
+        @chmod(APPPATH.'/cache', 0777);
+        @chmod(APPPATH.'/logs', 0777);
 
 		// get the parameters
 		$to_version = $this->request->param('to_version', NULL);
