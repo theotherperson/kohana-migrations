@@ -11,7 +11,7 @@
  */
 
 // migrations route
-Route::set('migrations', 'migrate(/<to_version>(/<connection>(/<rebuild>)))',
+Route::set('migrations', 'migrate(/<connection>(/<to_version>(/<rebuild>)))',
 	array(
 		'to_version' => '[0-9\.]+'
 	)
