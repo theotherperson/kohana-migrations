@@ -126,11 +126,11 @@ class Model_Migration_Core
 		// run each migration in the correct order
 		if ($direction == self::DIRECTION_UP)
 		{
-			asort($migrations);
+			ksort($migrations);
 		}
 		else
 		{
-			arsort($migrations);
+			krsort($migrations);
 		}
 
 		foreach ($migrations as $version => $migration)
