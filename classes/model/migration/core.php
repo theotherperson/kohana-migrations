@@ -152,6 +152,7 @@ class Model_Migration_Core
 				}
 				catch (Exception $e)
 				{
+					echo $e->getMessage();
 					$this->set_status(self::STATUS_FAILED);
 					return TRUE;
 				}
