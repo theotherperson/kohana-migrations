@@ -30,7 +30,13 @@ abstract class Controller_Migrations_Core extends Controller
 		$from_version = $this->request->param('from_version', NULL);
 
 		$migration = new Model_Migration($connection);
-		$migration->set_schema_version($this->get_schema_version());
+
+		if($from_version === NULL)
+		{
+			$from_version = $this->get_schema_version();
+		}
+		$migration->set_schema_version($from_version);
+		
 		if ($to_version === NULL)
 		{
 			$to_version = $this->get_app_version();
