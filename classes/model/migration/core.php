@@ -36,12 +36,16 @@ class Model_Migration_Core
 	 * @param type $rebuild
 	 * @return	bool	true if a migration task was attempted regardless of outcome, otherwise false
 	 */
-	public function migrate_to($version, $rebuild)
+	public function migrate_to($version, $schema_version = NULL)
 	{
 		$migrations = array();
 		$direction = NULL;
-		$schema_version = $this->get_schema_version();
 		$file_extension = '.sql';
+
+		if($schema_version === NULL)
+		{
+			$schema_version = $this->get_schema_version();
+		}
 
 		if ($version === NULL)
 		{
@@ -80,7 +84,7 @@ class Model_Migration_Core
 		$module_migrations_path = MODPATH.DIRECTORY_SEPARATOR.self::MODULE_NAME.DIRECTORY_SEPARATOR.self::MIGRATIONS_PATH;
 		$app_migrations_path = APPPATH.'..'.DIRECTORY_SEPARATOR.self::MIGRATIONS_PATH;
 		$migrations_paths = array($module_migrations_path, $app_migrations_path);
-		
+
 		foreach($migrations_paths as $migrations_path)
 		{
 			$migrations_path_handle = opendir($migrations_path);
@@ -93,13 +97,13 @@ class Model_Migration_Core
 				{
 					$migration_version = $matches[1];
 				}
-	
+
 				if($migration_version === NULL)
 				{
 					// the filename does not match the expected pattern so move on to the next file
 					continue;
 				}
-	
+
 				if ($direction == self::DIRECTION_UP)
 				{
 					if ($migration_version > $schema_version && $migration_version <= $version)
@@ -143,6 +147,12 @@ class Model_Migration_Core
 			// remove the last element as it will always be empty
 			array_pop($sql_statements);
 
+			/**
+			 * mark as a successfull migrtion here, it will be marked as failed
+			 * later if something bad happens
+			 */
+			$this->set_status(self::STATUS_SUCCESS);
+
 			// run each statement one by one
 			foreach ($sql_statements as $sql_statement)
 			{
@@ -152,14 +162,37 @@ class Model_Migration_Core
 				}
 				catch (Exception $e)
 				{
-					echo $e->getMessage();
-					$this->set_status(self::STATUS_FAILED);
-					return TRUE;
+					/**
+					 * if we're currently executing an 'UP' migration we need to
+					 * stop and trigger the equivelent down migration to undo
+					 * what has happened so far, if this is a 'DOWN' migration
+					 * we should just ignore the error and carry on as no damage
+					 * can be done when removing/changing things that don't yet
+					 * exist or by attempting to add things that already do
+					 * (that's the theory anyway!)
+					 */
+					if ($direction == self::DIRECTION_UP)
+					{
+						echo "Migration Failed, attempting to undo migration.\n";
+						echo $e->getMessage()."\n";
+
+						// go back down to the version we just came from
+						$this->migrate_to($schema_version, $version);
+						$this->set_to_version($version);
+						$this->set_schema_version($schema_version);
+						$this->set_status(self::STATUS_FAILED);
+						return TRUE;
+					}
+					else
+					{
+						// going down, ignore errors and move on to the next statement
+						echo $e->getMessage()."\n";
+						$this->set_status(self::STATUS_FAILED);
+					}
 				}
 			}
 		}
 
-		$this->set_status(self::STATUS_SUCCESS);
 		return TRUE;
 	}
 

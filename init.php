@@ -11,16 +11,17 @@
  */
 
 // migrations route
-Route::set('migrations', 'migrate(/<connection>(/<to_version>(/<rebuild>)))',
+Route::set('migrations', 'migrate(/<connection>(/<to_version>(/<from_version>)))',
 	array(
-		'to_version' => '[0-9\.]+'
+		'to_version' => '[0-9\.]+',
+		'from_version' => '[0-9\.]+'
 	)
 )->defaults(
 	array(
 		'controller' => 'migrations',
 		'action' => 'migrate',
-		'to_version' => NULL,
 		'connection' => NULL,
-		'rebuild' => NULL
+		'to_version' => NULL,
+		'from_version' => NULL
 	)
 );

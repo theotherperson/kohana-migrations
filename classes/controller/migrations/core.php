@@ -19,21 +19,15 @@ abstract class Controller_Migrations_Core extends Controller
 		{
 			throw new HTTP_Exception_403('Access via CLI only');
 		}
-        
+
         // try and ensure the cache and log dirs are writeable
         @chmod(APPPATH.'/cache', 0777);
         @chmod(APPPATH.'/logs', 0777);
 
 		// get the parameters
-		$to_version = $this->request->param('to_version', NULL);
-
 		$connection = $this->request->param('connection', NULL);
-
-		$rebuild = FALSE;
-		if ($this->request->param('rebuild') == 'rebuild')
-		{
-			$rebuild = TRUE;
-		}
+		$to_version = $this->request->param('to_version', NULL);
+		$from_version = $this->request->param('from_version', NULL);
 
 		$migration = new Model_Migration($connection);
 		$migration->set_schema_version($this->get_schema_version());
@@ -42,7 +36,7 @@ abstract class Controller_Migrations_Core extends Controller
 			$to_version = $this->get_app_version();
 		}
 
-		if($migration->migrate_to($to_version, $rebuild))
+		if($migration->migrate_to($to_version))
 		{
 			$this->after_migrate($migration);
 		}
