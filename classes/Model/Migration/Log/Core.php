@@ -1,5 +1,4 @@
-<?php defined('SYSPATH') or die('No direct script access.');
-
+<?php
 
 class Model_Migration_Log_Core extends ORM
 {

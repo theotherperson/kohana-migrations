@@ -1,4 +1,4 @@
-<?php defined('SYSPATH') OR die('No Direct Script Access');
+<?php
 
 /**
  *
@@ -36,7 +36,7 @@ abstract class Controller_Migrations_Core extends Controller
 			$from_version = $this->get_schema_version();
 		}
 		$migration->set_schema_version($from_version);
-		
+
 		if ($to_version === NULL)
 		{
 			$to_version = $this->get_app_version();
